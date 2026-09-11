@@ -56,14 +56,14 @@ git --version
 
 | 工具 | 要求 | 用途 |
 | --- | --- | --- |
-| Java | 21 | 运行后端 |
+| Java | 17 | 运行后端 |
 | Maven | 3.9+ | 编译、下载依赖、启动后端 |
 | Node.js | LTS | 运行 Vue 工具链 |
 | npm | 随 Node.js 安装 | 安装前端依赖 |
 | PostgreSQL | 15+ | 保存数据 |
 | Git | 可用即可 | 版本管理 |
 
-`java -version` 的主版本必须是 21。如果提示“不是命令”，先安装软件或修复 PATH，不要用 Java 8/17 代替。
+`java -version` 的主版本必须是 17。如果提示“不是命令”，先安装软件或修复 PATH。
 
 ## 3. 创建本地数据库
 
@@ -119,7 +119,7 @@ M1 不实现认证，但需求要求后续使用 JWT，并保留 OpenAPI 文档�
 <dependency>
     <groupId>org.springdoc</groupId>
     <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    <version>填写与当前 Spring Boot 3.x 兼容的稳定版本</version>
+    <version>填写与当前 Spring Boot 4.1.1 兼容的稳定版本</version>
 </dependency>
 ```
 
