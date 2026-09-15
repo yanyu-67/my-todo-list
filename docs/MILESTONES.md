@@ -12,7 +12,7 @@
 
 ### 2.2 技术约束
 
-- 后端：Java 21、Spring Boot 3.x、Spring MVC、Spring Data JPA、Spring Security、JWT、Maven。
+- 后端：Java 17、Spring Boot 4.1.1、Spring MVC、Spring Data JPA、Spring Security、JWT、Maven。
 - 数据库：PostgreSQL，使用 JPA/Hibernate 访问数据。
 - 前端：Vue 3、Vite、Vue Router、Pinia、Element Plus、Axios。
 - 测试：JUnit 5、Spring Boot Test。

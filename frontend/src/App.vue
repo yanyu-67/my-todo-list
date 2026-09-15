@@ -1,16 +1,43 @@
 <script setup>
 import {ref} from 'vue'
-import {checkHealth} from "./api/http";
-const result = ref('尚未检查')
-async function testBackend(){
-  try {
-    result.value=JSON.stringify((await checkHealth()).data)
-  }catch (error){
-    result.value=`请求失败：${error.message}`
-  }
+import {login} from "./api/auth";
+
+const username = ref("");
+const password = ref("");
+const errorMessage = ref("");
+
+async function handleLogin(){
+    try{
+        errorMessage.value="";
+
+        await  login(
+            username.value,password.value
+        );
+        window.location.href = "/todos";
+    }catch (error){
+        errorMessage.value = error.response?.data?.message || error.message || "登录失败";
+    }
+
 }
 </script>
 
 <template>
-  <main><h1>我的待办事项</h1><button @click="testBackend">测试后端连接</button><p>{{result}}</p></main>
+  <main>
+      <h1>登录</h1>
+      <input
+              v-model="username"
+              placeholder="用户名"
+      />
+      <input
+              v-model="password"
+              type="password"
+              placeholder="密码"
+      />
+      <button @click="handleLogin">
+          登录
+      </button>
+      <p v-if="errorMessage">
+          {{errorMessage}}
+      </p>
+  </main>
 </template>
