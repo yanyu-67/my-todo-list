@@ -13,7 +13,7 @@ export async function register(username,password){
 }
 
 export async function changePassword(oldPassword,newPassword,confirmPassword){
-    const response = await http.post('/auth/changePassword', {
+    const response = await http.post('/auth/change-password', {
         oldPassword,newPassword,confirmPassword, })
     return response.data
 }
