@@ -1,10 +1,14 @@
 <script setup>
-import { useRouter } from "vue-router";
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useAuthStore } from "../stores/auth";
 
+const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+
+const activeMenu = computed(() => route.fullPath);
 
 function logOut() {
   authStore.clearLogin()
@@ -17,7 +21,7 @@ function logOut() {
   <el-container class="app-shell">
     <el-aside width="240px" class="sidebar">
       <div class="brand">TODO<span>.</span></div>
-      <el-menu router :default-active="$route.path">
+      <el-menu router :default-active="activeMenu">
         <el-menu-item index="/todos">我的任务</el-menu-item>
         <el-menu-item index="/todos?filter=today">今天</el-menu-item>
         <el-menu-item index="/todos?filter=important">重要事项</el-menu-item>

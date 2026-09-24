@@ -34,6 +34,10 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+		<!--
+			JPA，一种 ORM 框架，用操作对象的方式，来操作数据库，而不用直接写 SQL
+			ORM 自动把 SQL 查询结果封装成对象，把对象的修改翻译成 UPDATE 语句。
+		-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -56,6 +60,7 @@
 			<version>3.1.0</version>
 		</dependency>
 
+<!--		PostgreSQL 的 JDBC 驱动，运行时加载-->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>

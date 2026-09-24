@@ -35,10 +35,38 @@ const form = reactive(emptyForm())
 
 const pageFilter = computed(() => route.query.filter || 'all')
 
-const pageTitle = computed(() => {
-  if (pageFilter.value === 'today') return '今天'
-  if (pageFilter.value === 'important') return '重要事项'
-  return '我的任务'
+const viewMeta = computed(() => {
+  const meta = {
+    all: {
+      title: '我的任务',
+      scope: 'ALL',
+      subtitle: '总览所有任务，把下一步排清楚。',
+      introTitle: '任务总览',
+      introText: '按完成状态、截止日期和更新时间整理，适合做一次完整梳理。',
+      emptyText: '还没有任务，先添加一个待办吧',
+      accentLabel: 'Workspace',
+    },
+    today: {
+      title: '今天',
+      scope: 'TODAY',
+      subtitle: '只看今天要收尾的事，保持节奏轻一点。',
+      introTitle: '今日焦点',
+      introText: '这里只保留截止日期为今天的任务，用来快速确认今天要推进什么。',
+      emptyText: '今天没有到期任务',
+      accentLabel: 'Daily',
+    },
+    important: {
+      title: '重要事项',
+      scope: 'IMPORTANT',
+      subtitle: '把最关键的任务单独拎出来，先处理高价值事项。',
+      introTitle: '重要清单',
+      introText: '这些任务被标记为重要，适合放在每日计划的最前面。',
+      emptyText: '暂无重要任务',
+      accentLabel: 'Priority',
+    },
+  }
+
+  return meta[pageFilter.value] || meta.all
 })
 
 function isToday(date) {
@@ -108,18 +136,54 @@ const visibleTodos = computed(() => {
       })
 })
 
+const statusCounts = computed(() => {
+  const completed = pageTodos.value.filter((todo) => todo.completed).length
+  const active = pageTodos.value.length - completed
+
+  return {
+    all: pageTodos.value.length,
+    active,
+    completed,
+  }
+})
+
 const statistics = computed(() => {
   const total = todos.value.length
   const completed = todos.value.filter((todo) => todo.completed).length
   const active = total - completed
   const today = todos.value.filter((todo) => isToday(todo.dueDate)).length
+  const important = todos.value.filter((todo) => todo.important).length
+  const scopedTotal = pageTodos.value.length
+  const scopedCompleted = pageTodos.value.filter((todo) => todo.completed).length
+  const scopedActive = scopedTotal - scopedCompleted
+  const scopedRate = scopedTotal
+      ? `${Math.round((scopedCompleted / scopedTotal) * 100)}%`
+      : 'N/A'
 
-  return {
-    active,
-    today,
-    completed,
-    rate: total ? `${Math.round((completed / total) * 100)}%` : 'N/A',
+  if (pageFilter.value === 'today') {
+    return [
+      { label: '今日任务', value: scopedTotal },
+      { label: '待推进', value: scopedActive },
+      { label: '已收尾', value: scopedCompleted },
+      { label: '今日完成率', value: scopedRate },
+    ]
   }
+
+  if (pageFilter.value === 'important') {
+    return [
+      { label: '重要任务', value: important },
+      { label: '待处理', value: scopedActive },
+      { label: '今日到期', value: pageTodos.value.filter((todo) => isToday(todo.dueDate)).length },
+      { label: '完成率', value: scopedRate },
+    ]
+  }
+
+  return [
+    { label: '未完成', value: active },
+    { label: '今日到期', value: today },
+    { label: '已完成', value: completed },
+    { label: '完成率', value: total ? `${Math.round((completed / total) * 100)}%` : 'N/A' },
+  ]
 })
 
 function errorText(error, fallback) {
@@ -270,121 +334,125 @@ onMounted(loadTodos)
 
 <template>
   <AppLayout>
-    <section class="page-header">
-      <div>
-        <p class="eyebrow">
-          PERSONAL WORKSPACE / {{ pageFilter.toUpperCase() }}
-        </p>
+    <div :class="['todo-page', `todo-page--${pageFilter}`]">
+      <section class="page-header">
+        <div class="page-title-block">
+          <p class="eyebrow">
+            PERSONAL WORKSPACE / {{ viewMeta.scope }}
+          </p>
 
-        <h1>{{ pageTitle }}</h1>
-
-        <p class="muted">
-          Focus today. Build tomorrow.
-        </p>
-      </div>
-
-      <el-button type="primary" @click="openCreateDialog">
-        + 添加任务
-      </el-button>
-    </section>
-
-    <section class="stats-grid">
-      <el-card shadow="never">
-        <span>未完成</span>
-        <strong>{{ statistics.active }}</strong>
-      </el-card>
-
-      <el-card shadow="never">
-        <span>今日到期</span>
-        <strong>{{ statistics.today }}</strong>
-      </el-card>
-
-      <el-card shadow="never">
-        <span>已完成</span>
-        <strong>{{ statistics.completed }}</strong>
-      </el-card>
-
-      <el-card shadow="never">
-        <span>完成率</span>
-        <strong>{{ statistics.rate }}</strong>
-      </el-card>
-    </section>
-
-    <section class="toolbar">
-      <el-radio-group v-model="statusFilter">
-        <el-radio-button value="all">
-          全部
-        </el-radio-button>
-
-        <el-radio-button value="active">
-          进行中
-        </el-radio-button>
-
-        <el-radio-button value="completed">
-          已完成
-        </el-radio-button>
-      </el-radio-group>
-
-      <el-input
-          v-model="keyword"
-          clearable
-          placeholder="搜索标题或描述"
-          class="search-input"
-      />
-    </section>
-
-    <div v-loading="loading" class="todo-list">
-      <el-empty
-          v-if="!loading && visibleTodos.length === 0"
-          description="没有符合条件的任务"
-      />
-
-      <el-card
-          v-for="todo in visibleTodos"
-          :key="todo.id"
-          class="todo-card"
-          shadow="never"
-      >
-        <div class="todo-main" @click="openDetail(todo)">
-          <el-checkbox
-              :model-value="todo.completed"
-              @click.stop
-              @change="toggleCompleted(todo)"
-          />
-
-          <div class="todo-copy">
-            <h3 :class="{ completed: todo.completed }">
-              {{ todo.title }}
-            </h3>
-
-            <p v-if="todo.description">
-              {{ todo.description }}
-            </p>
-
-            <small>
-              {{ todo.dueDate ? `截止 ${todo.dueDate}` : '未设置截止日期' }}
-            </small>
+          <div class="title-row">
+            <h1>{{ viewMeta.title }}</h1>
+            <span class="view-chip">{{ viewMeta.accentLabel }}</span>
           </div>
 
-          <el-tag v-if="todo.important" type="warning">
-            重要
-          </el-tag>
-
-          <el-tag :type="todo.completed ? 'success' : 'info'">
-            {{ todo.completed ? '已完成' : '进行中' }}
-          </el-tag>
+          <p class="muted">
+            {{ viewMeta.subtitle }}
+          </p>
         </div>
 
-        <div class="todo-actions">
-          <el-button link @click="openEditDialog(todo)">
-            编辑
-          </el-button>
+        <el-button type="primary" @click="openCreateDialog">
+          + 添加任务
+        </el-button>
+      </section>
 
-          <el-button link type="danger" @click="removeTodo(todo)">
-            删除
-          </el-button>
+      <section class="stats-grid">
+        <el-card
+            v-for="item in statistics"
+            :key="item.label"
+            shadow="never"
+        >
+          <span>{{ item.label }}</span>
+          <strong>{{ item.value }}</strong>
+        </el-card>
+      </section>
+
+      <section class="view-intro">
+        <div>
+          <span>{{ viewMeta.accentLabel }}</span>
+          <h2>{{ viewMeta.introTitle }}</h2>
+          <p>{{ viewMeta.introText }}</p>
         </div>
-      </el-card>
+
+        <strong>{{ statusCounts.all }}</strong>
+      </section>
+
+      <section class="toolbar">
+        <el-radio-group v-model="statusFilter" class="status-switch">
+          <el-radio-button value="all">
+            全部 {{ statusCounts.all }}
+          </el-radio-button>
+
+          <el-radio-button value="active">
+            进行中 {{ statusCounts.active }}
+          </el-radio-button>
+
+          <el-radio-button value="completed">
+            已完成 {{ statusCounts.completed }}
+          </el-radio-button>
+        </el-radio-group>
+
+        <el-input
+            v-model="keyword"
+            clearable
+            placeholder="搜索标题或描述"
+            class="search-input"
+        />
+      </section>
+
+      <div v-loading="loading" class="todo-list">
+        <el-empty
+            v-if="!loading && visibleTodos.length === 0"
+            :description="viewMeta.emptyText"
+        />
+
+        <el-card
+            v-for="todo in visibleTodos"
+            :key="todo.id"
+            class="todo-card"
+            shadow="never"
+        >
+          <div class="todo-main" @click="openDetail(todo)">
+            <el-checkbox
+                :model-value="todo.completed"
+                @click.stop
+                @change="toggleCompleted(todo)"
+            />
+
+            <div class="todo-copy">
+              <h3 :class="{ completed: todo.completed }">
+                {{ todo.title }}
+              </h3>
+
+              <p v-if="todo.description">
+                {{ todo.description }}
+              </p>
+
+              <small>
+                {{ todo.dueDate ? `截止 ${todo.dueDate}` : '未设置截止日期' }}
+              </small>
+            </div>
+
+            <el-tag v-if="todo.important" type="warning">
+              重要
+            </el-tag>
+
+            <el-tag :type="todo.completed ? 'success' : 'info'">
+              {{ todo.completed ? '已完成' : '进行中' }}
+            </el-tag>
+          </div>
+
+          <div class="todo-actions">
+            <el-button link @click="openEditDialog(todo)">
+              编辑
+            </el-button>
+
+            <el-button link type="danger" @click="removeTodo(todo)">
+              删除
+            </el-button>
+          </div>
+        </el-card>
+      </div>
     </div>
 
     <el-dialog
