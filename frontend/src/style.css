@@ -169,7 +169,8 @@ input {
   display: flex;
   flex-direction: column;
   padding: 42px clamp(24px, 5vw, 72px);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .todo-page {
@@ -635,7 +636,8 @@ input {
     height: 100vh;
     min-height: 0;
     padding: 28px 20px;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   .stats-grid {

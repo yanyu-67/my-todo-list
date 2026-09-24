@@ -23,6 +23,7 @@ function logOut() {
       <div class="brand">TODO<span>.</span></div>
       <el-menu router :default-active="activeMenu">
         <el-menu-item index="/todos">我的任务</el-menu-item>
+        <el-menu-item v-if="authStore.isAdmin" index="/admin/users">用户管理</el-menu-item>
         <el-menu-item index="/todos?filter=today">今天</el-menu-item>
         <el-menu-item index="/todos?filter=important">重要事项</el-menu-item>
       </el-menu>

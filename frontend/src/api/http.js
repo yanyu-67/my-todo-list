@@ -22,6 +22,7 @@ http.interceptors.response.use(
         if (status === 401){
             localStorage.removeItem("todo_token");
             localStorage.removeItem("todo_username");
+            localStorage.removeItem("todo_role");
             if (window.location.pathname !== '/login') {
                 window.location.href = "/login?reason=expired";
             }

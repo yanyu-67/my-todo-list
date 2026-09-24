@@ -25,11 +25,21 @@ public class User {
     @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
     private List<Todo> todos=new ArrayList<>();
 
+    //表示数据库里保存 `USER` / `ADMIN`，不要保存 `0` / `1`
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false,length = 20)
+    private UserRole role=UserRole.USER;
+
+    @Column(nullable = false)
+    private Boolean enabled = true;
+
     protected User(){}
 
     public  User (String username,String passwordHash){
         this.username=username;
         this.passwordHash=passwordHash;
+        this.role=UserRole.USER;
+        this.enabled=true;
     }
 
     @PrePersist
@@ -75,5 +85,21 @@ public class User {
 
     public void setTodos(List<Todo> todos) {
         this.todos = todos;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 }

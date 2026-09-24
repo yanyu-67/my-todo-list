@@ -19,6 +19,12 @@ const router = createRouter({
             component: () => import('../views/ChangePasswordView.vue'),
             meta: { requiresAuth: true },
         },
+        {
+            path:'/admin/users',
+            name:'admin-users',
+            component: () => import('../views/AdminUsersView.vue'),
+            meta: { requiresAuth: true,requiresAdmin: true },
+        }
     ],
 })
 
@@ -27,9 +33,13 @@ router.beforeEach((to) => {
     if(to.meta.requiresAuth && !authStore.isLoggedIn){
         return { name: 'login', query: { redirect: to.fullPath }}
     }
+    if(to.meta.requiresAdmin && !authStore.isAdmin){
+        return {name:'todos'}
+    }
     if((to.name === 'login' || to.name === 'register') && authStore.isLoggedIn){
         return { name: 'todos' }
     }
+
 })
 
 export default router

@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,6 +22,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+
+
 
     public JwtAuthenticationFilter(JwtService jwtService,
                                    UserRepository userRepository) {
@@ -43,22 +46,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String token = authorization.substring("Bearer ".length()).trim();
 
-            if (!token.isEmpty()) {
-                try {
-                    String username = jwtService.username(token);
+            try {
+                String username = jwtService.username(token);
 
-                    if (userRepository.findByUsername(username).isPresent()) {
-                        //创建认证对象
+                userRepository.findByUsername(username).ifPresent(user -> {
+                    if (Boolean.TRUE.equals(user.getEnabled())) {
+                        // 构建权限列表
+                        var authorities = List.of(
+                                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                        );
+
                         var authentication = new UsernamePasswordAuthenticationToken(
-                                username, null, List.of());
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authentication);
+                                username, null, authorities);
+
+                        // 将认证信息放入上下文
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
-                    //处理无效 Token
-                } catch (JwtException | IllegalArgumentException ignored) {
-                    SecurityContextHolder.clearContext();
-                }
+                });
+
+            } catch (JwtException | IllegalArgumentException ignored) {
+                SecurityContextHolder.clearContext();
             }
+
         }
 
         filterChain.doFilter(request, response);

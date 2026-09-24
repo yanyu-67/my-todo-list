@@ -45,9 +45,12 @@ public class AuthService {
         if (!passwordEncoder.matches(request.password(),user.getPasswordHash())){
             throw new AuthException(HttpStatus.UNAUTHORIZED,"用户名或密码错误");
         }
+        if(!Boolean.TRUE.equals(user.getEnabled())){
+            throw new AuthException(HttpStatus.UNAUTHORIZED,"账号已被禁用");
+        }
 
         String token = jwtService.generate(user.getUsername());
-        return new AuthResponse(token,user.getUsername());
+        return new AuthResponse(token,user.getUsername(),user.getRole().name());
     }
 
     @Transactional
