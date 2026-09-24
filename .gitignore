@@ -15,3 +15,4 @@ frontend/.env.local
 # IntelliJ IDEA
 .idea/
 *.iml
+.zcode/plans/
