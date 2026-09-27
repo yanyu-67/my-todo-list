@@ -24,7 +24,11 @@ dist-ssr
 *.sw?
 
 # Playwright
-/playwright-report/
 /test-results/
+/playwright-report/
 /blob-report/
 /playwright/.cache/
+/playwright/.auth/
+
+# 暂时忽略 GitHub Action
+.github/workflows/
